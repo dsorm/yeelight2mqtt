@@ -1,0 +1,36 @@
+name: go-tag
+
+on:
+  create:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+
+      - name: Test
+        run: go test -v ./...
+
+      - name: Cross build
+        run: wget https://github.com/dsorm/gox/releases/download/latest/gox_linux_amd64 && chmod +x gox_linux_amd64 && ./gox_linux_amd64 -os="windows linux darwin freebsd" -arch="amd64 arm64 arm ppc64 riscv64" -ldflags="-w -s" -output="release/{{.Dir}}_{{.OS}}_{{.Arch}}"
+
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+
+      - name: Publish the Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: release/*
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
