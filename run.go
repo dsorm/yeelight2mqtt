@@ -223,7 +223,7 @@ type lightProperties struct {
 	flow_params    string
 	music_on       bool
 	name           string
-	bg_power       bool
+	bg_on          bool
 	bg_flowing     bool
 	bg_flow_params string
 	bg_ct          uint16
@@ -318,7 +318,7 @@ func (l *Light) get_prop() error {
 		flow_params:    result[9].(string),
 		music_on:       result[10].(string) == "1",
 		name:           result[11].(string),
-		bg_power:       result[12].(string) == "on",
+		bg_on:          result[12].(string) == "on",
 		bg_flowing:     result[13].(string) == "1",
 		bg_flow_params: result[14].(string),
 		bg_ct:          atouint16(result[15]),
@@ -626,7 +626,7 @@ func (l *Light) set_name(name string) {
 
 func (as *AppState) publishProp(light *Light) {
 	// print
-	// fmt.Printf("%v%+v\n", light.Name, light.latestState)
+	// consoleLogf("%v%+v\n", light.Name, light.latestState)
 
 	// publish using mqtt
 
@@ -729,10 +729,10 @@ func (as *AppState) publishProp(light *Light) {
 		"main/moonlight_on/datatype": "boolean",
 		"main/moonlight_on/settable": "true",
 
-		"bg/bg_power":          fmt.Sprintf("%v", light.latestState.bg_power),
-		"bg/bg_power/name":     "Power",
-		"bg/bg_power/datatype": "boolean",
-		"bg/bg_power/settable": "true",
+		"bg/on":          fmt.Sprintf("%v", light.latestState.bg_on),
+		"bg/on/name":     "Power",
+		"bg/on/datatype": "boolean",
+		"bg/on/settable": "true",
 
 		"bg/bg_flowing":          fmt.Sprintf("%v", light.latestState.bg_flowing),
 		"bg/bg_flowing/name":     "Flowing",
@@ -1041,7 +1041,7 @@ func (as *AppState) subProp(light *Light) {
 			light.latestState.moonlight_on = str == "true"
 		},
 
-		"bg/bg_power/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/on/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
