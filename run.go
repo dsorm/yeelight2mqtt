@@ -33,6 +33,17 @@ type sendCommandCtx struct {
 	l        *Light
 }
 
+func consoleLogf(format string, a ...interface{}) {
+	format = time.Now().Format("[2006-01-02 15:04:05] ") + format
+	fmt.Printf(format, a...)
+}
+
+func consoleLogln(a ...interface{}) {
+	timeStr := time.Now().Format("[2006-01-02 15:04:05]")
+	a = append([]interface{}{timeStr}, a...)
+	fmt.Println(a...)
+}
+
 func (l *Light) sendCommand(command string, maxTries int) (response []byte, err error) {
 	ctx := &sendCommandCtx{
 		maxTries: uint64(maxTries),
@@ -94,11 +105,12 @@ func (ctx *sendCommandCtx) sendCommandWithCtx() (response []byte, err error) {
 		buf := make([]byte, 1024)
 		n, err := ctx.l.conn.Read(buf)
 		if err != nil {
+			reason := "unknown reason"
 			if strings.Contains(err.Error(), "timeout") {
-				fmt.Printf("sendCommand() to %v failed due to timeout, retrying... (%v/%v)\n", ctx.l.Host, ctx.tries, ctx.maxTries)
-			} else {
-				fmt.Printf("sendCommand() to %v failed due to unknown reason, retrying... (%v/%v)\n", ctx.l.Host, ctx.tries, ctx.maxTries)
+				reason = "timeout"
 			}
+			consoleLogf("sendCommand() to %v failed due to %v, retrying... (%v/%v)\n", ctx.l.Host, reason, ctx.tries, ctx.maxTries)
+
 			unsuccessfulSends++
 			unlockMutex()
 			return ctx.sendCommandWithCtx()
@@ -276,7 +288,7 @@ func (l *Light) get_prop() error {
 		}
 		num, err := strconv.Atoi(s)
 		if err != nil {
-			fmt.Printf("atoi: %v\n", err)
+			consoleLogf("atoi: %v\n", err)
 		}
 		return uint16(num)
 	}
@@ -289,7 +301,7 @@ func (l *Light) get_prop() error {
 
 		num, err := strconv.Atoi(s)
 		if err != nil {
-			fmt.Printf("atoi: %v\n", err)
+			consoleLogf("atoi: %v\n", err)
 		}
 		return uint32(num)
 	}
@@ -540,7 +552,7 @@ func (l *Light) start_cf(count uint64, action uint8, flow_expression string) err
 	response, err := l.sendCommand(command, 10)
 
 	if !strings.Contains(string(response), "ok") {
-		fmt.Printf("start_cf() failed:\n\tresponse from light: %v", string(response))
+		consoleLogf("start_cf() failed:\n\tresponse from light: %v", string(response))
 	}
 
 	return err
@@ -780,7 +792,7 @@ func (as *AppState) publishProp(light *Light) {
 
 func (as *AppState) publishSingleProp(light *Light, topic string, payload interface{}) {
 	baseTopic := fmt.Sprintf("%v/%v/", as.MQTTSettings.BaseTopic, light.Name)
-	fmt.Printf("%v%v = %v\n", baseTopic, topic, payload)
+	consoleLogf("%v%v = %v\n", baseTopic, topic, payload)
 	as.mqttClient.Publish(baseTopic+topic, byte(as.MQTTSettings.QoS), true, payload)
 }
 
@@ -803,13 +815,14 @@ func (as *AppState) subProp(light *Light) {
 				yeelightBool = "off"
 				internalBool = false
 			default:
-				fmt.Printf("Error while processing '%v -> %v': not 'true' or 'false'\n", message.Topic(), string(message.Payload()))
+				consoleLogf("Error while processing '%v -> %v': not 'true' or 'false'\n", message.Topic(), string(message.Payload()))
+				return
 			}
 
 			// change stuff
 			err := light.set_power(yeelightBool, "smooth", "500", "")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -822,18 +835,18 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			brightness, err := strconv.Atoi(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 			if brightness > math.MaxUint8 {
-				fmt.Printf("Error while processing '%v -> %v': brightness too high\n", message.Topic(), string(message.Payload()))
+				consoleLogf("Error while processing '%v -> %v': brightness too high\n", message.Topic(), string(message.Payload()))
 				return
 			}
 
 			// change stuff
 			err = light.set_bright(uint8(brightness), "smooth", "500")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -846,14 +859,14 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			ct, err := strconv.Atoi(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
 			// change stuff
 			err = light.set_ct_abx(uint(ct), "smooth", "500")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -866,14 +879,14 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			rgb, err := strconv.Atoi(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
 			// change stuff
 			err = light.set_rgb(uint32(rgb), "smooth", "500")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -886,14 +899,14 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			hue, err := strconv.Atoi(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
 			// change stuff
 			err = light.set_hsv(uint16(hue), light.latestState.sat, "smooth", "500")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -906,14 +919,14 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			sat, err := strconv.Atoi(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("'%v -> %v': Error while converting to int: %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
 			// change stuff
 			err = light.set_hsv(light.latestState.hue, uint8(sat), "smooth", "500")
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -927,7 +940,7 @@ func (as *AppState) subProp(light *Light) {
 			// verify payload
 			colorMode, err := colorModeFromString(string(message.Payload()))
 			if err != nil {
-				fmt.Printf("'%v -> %v': Error while converting to colorMode: %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("'%v -> %v': Error while converting to colorMode: %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -953,7 +966,7 @@ func (as *AppState) subProp(light *Light) {
 
 			err = light.set_power(state, "smooth", "500", powerMode)
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 			}
 
 			// update state
@@ -1007,7 +1020,7 @@ func (as *AppState) subProp(light *Light) {
 			case "false":
 				mode = "0"
 			default:
-				fmt.Printf("'%v -> %v': Error while converting to bool\n", message.Topic(), string(message.Payload()))
+				consoleLogf("'%v -> %v': Error while converting to bool\n", message.Topic(), string(message.Payload()))
 			}
 
 			// change stuff
@@ -1020,7 +1033,7 @@ func (as *AppState) subProp(light *Light) {
 
 			err := light.set_power(state, "smooth", "500", mode)
 			if err != nil {
-				fmt.Printf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
+				consoleLogf("Error while processing '%v -> %v': %v\n", message.Topic(), string(message.Payload()), err)
 				return
 			}
 
@@ -1158,7 +1171,7 @@ func (as *AppState) propChangeDaemon() {
 	propChangeConsumer := func(l *Light) {
 		for {
 			response := <-l.propChange
-			fmt.Printf("PropChangeConsumer caught a change: %v", response)
+			consoleLogf("PropChangeConsumer caught a change: %v", response)
 			// TODO do something with the prop change notification
 		}
 	}
@@ -1174,14 +1187,14 @@ func (as *AppState) statePushDaemon() {
 	for k := range as.Lights {
 		as.subProp(&as.Lights[k])
 	}
-	fmt.Println("Subscribed to MQTT messages for the lights!")
+	consoleLogln("Subscribed to MQTT messages for the lights!")
 }
 
 // Poll every light and publish the properties at certain intervals
 func (as *AppState) stateDaemon() {
 	// trick to make the ticker start immediately
 	ticker := time.NewTicker(1 * time.Second)
-	fmt.Printf("Initial poll starting...\n")
+	consoleLogf("Initial poll starting...\n")
 
 	go func() {
 		for {
@@ -1191,7 +1204,7 @@ func (as *AppState) stateDaemon() {
 				for k := range as.Lights {
 					err := as.Lights[k].get_prop()
 					if err != nil {
-						fmt.Println(err)
+						consoleLogln(err)
 						continue
 					}
 
@@ -1204,7 +1217,7 @@ func (as *AppState) stateDaemon() {
 	time.Sleep(1250 * time.Millisecond)
 	// set real ticker interval after the first tick
 	ticker.Reset(time.Duration(as.LightPollingRate.Seconds) * time.Second)
-	fmt.Printf("Polling the lights every %vs...\n", as.LightPollingRate.Seconds)
+	consoleLogf("Polling the lights every %vs...\n", as.LightPollingRate.Seconds)
 }
 
 func (as *AppState) mqttInit() error {
@@ -1225,7 +1238,7 @@ func (as *AppState) mqttInit() error {
 	}
 
 	if !supportedProtocol {
-		fmt.Println("MQTT protocol not specified in host, using tcp://..")
+		consoleLogln("MQTT protocol not specified in host, using tcp://..")
 		as.MQTTSettings.Host = "tcp://" + as.MQTTSettings.Host
 	}
 
@@ -1233,13 +1246,13 @@ func (as *AppState) mqttInit() error {
 	opts.SetUsername(as.MQTTSettings.User)
 	opts.SetPassword(as.MQTTSettings.Password)
 
-	fmt.Printf("Connecting to MQTT broker %v...\n", as.MQTTSettings.Host)
+	consoleLogf("Connecting to MQTT broker %v...\n", as.MQTTSettings.Host)
 	as.mqttClient = mqtt.NewClient(opts)
 	if token := as.mqttClient.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
-	fmt.Println("Connection to MQTT broker established!")
+	consoleLogln("Connection to MQTT broker established!")
 	return nil
 }
 
@@ -1255,24 +1268,24 @@ func main() {
 			// calculate the value of failure rate in percent
 			failureRate := float32(unsuccessfulSends) / sendsTotal * 100
 
-			fmt.Printf("Unsuccessful sends: %v, successful sends: %v, failure rate %.2f%%", unsuccessfulSends, successfulSends, failureRate)
+			consoleLogf("Unsuccessful sends: %v, successful sends: %v, failure rate %.2f%%", unsuccessfulSends, successfulSends, failureRate)
 			os.Exit(1)
 		}
 	}()
 
-	fmt.Printf("yeelight2mqtt %v starting...\n", VERSION)
+	consoleLogf("yeelight2mqtt %v starting...\n", VERSION)
 
 	as := AppState{}
 
 	err := as.LoadFromYAML("config.yaml")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			fmt.Println("Config.yaml doesn't exist, creating a sample config.yaml...")
+			consoleLogln("Config.yaml doesn't exist, creating a sample config.yaml...")
 			err = CreateConfig("config.yaml")
 			if err != nil {
 				log.Fatalf("%v", err)
 			}
-			fmt.Println("Change the values in config.yaml as needed and start yeelight2mqtt again.")
+			consoleLogln("Change the values in config.yaml as needed and start yeelight2mqtt again.")
 
 			return
 		}
