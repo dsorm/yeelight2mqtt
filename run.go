@@ -734,47 +734,47 @@ func (as *AppState) publishProp(light *Light) {
 		"bg/on/datatype": "boolean",
 		"bg/on/settable": "true",
 
-		"bg/bg_flowing":          fmt.Sprintf("%v", light.latestState.bg_flowing),
-		"bg/bg_flowing/name":     "Flowing",
-		"bg/bg_flowing/datatype": "boolean",
-		"bg/bg_flowing/settable": "true",
+		"bg/flowing":          fmt.Sprintf("%v", light.latestState.bg_flowing),
+		"bg/flowing/name":     "Flowing",
+		"bg/flowing/datatype": "boolean",
+		"bg/flowing/settable": "true",
 
-		"bg/bg_flow_params":          fmt.Sprintf("%v", light.latestState.bg_flow_params),
-		"bg/bg_flow_params/name":     "Flow Parameters",
-		"bg/bg_flow_params/datatype": "string",
-		"bg/bg_flow_params/settable": "true",
+		"bg/flow_params":          fmt.Sprintf("%v", light.latestState.bg_flow_params),
+		"bg/flow_params/name":     "Flow Parameters",
+		"bg/flow_params/datatype": "string",
+		"bg/flow_params/settable": "true",
 
-		"bg/bg_ct":          fmt.Sprintf("%v", light.latestState.bg_ct),
-		"bg/bg_ct/name":     "Color Temperature",
-		"bg/bg_ct/datatype": "integer",
-		"bg/bg_ct/settable": "true",
-		"bg/bg_ct/unit":     "K",
-		"bg/bg_ct/format":   "1700:6500",
+		"bg/ct":          fmt.Sprintf("%v", light.latestState.bg_ct),
+		"bg/ct/name":     "Color Temperature",
+		"bg/ct/datatype": "integer",
+		"bg/ct/settable": "true",
+		"bg/ct/unit":     "K",
+		"bg/ct/format":   "1700:6500",
 
-		"bg/bg_lmode":          fmt.Sprintf("%v", light.latestState.bg_lmode),
-		"bg/bg_lmode/name":     "Light Mode",
-		"bg/bg_lmode/datatype": "string",
-		"bg/bg_lmode/settable": "true",
-		"bg/bg_lmode/format":   "RGB,CT,HSV,Flow",
+		"bg/lmode":          fmt.Sprintf("%v", light.latestState.bg_lmode),
+		"bg/lmode/name":     "Light Mode",
+		"bg/lmode/datatype": "string",
+		"bg/lmode/settable": "true",
+		"bg/lmode/format":   "RGB,CT,HSV,Flow",
 
-		"bg/bg_bright":          fmt.Sprintf("%v", light.latestState.bg_bright),
-		"bg/bg_bright/name":     "Brightness",
-		"bg/bg_bright/datatype": "integer",
-		"bg/bg_bright/settable": "true",
-		"bg/bg_bright/unit":     "%",
-		"bg/bg_bright/format":   "1:100",
+		"bg/bright":          fmt.Sprintf("%v", light.latestState.bg_bright),
+		"bg/bright/name":     "Brightness",
+		"bg/bright/datatype": "integer",
+		"bg/bright/settable": "true",
+		"bg/bright/unit":     "%",
+		"bg/bright/format":   "1:100",
 
-		"bg/bg_rgb":          fmt.Sprintf("%v", light.latestState.bg_rgb),
-		"bg/bg_rgb/name":     "RGB color",
-		"bg/bg_rgb/datatype": "integer",
-		"bg/bg_rgb/settable": "true",
-		"bg/bg_rgb/format":   "0:16777215",
+		"bg/rgb":          fmt.Sprintf("%v", light.latestState.bg_rgb),
+		"bg/rgb/name":     "RGB color",
+		"bg/rgb/datatype": "integer",
+		"bg/rgb/settable": "true",
+		"bg/rgb/format":   "0:16777215",
 
-		"bg/bg_hue":          fmt.Sprintf("%v", light.latestState.bg_hue),
-		"bg/bg_hue/name":     "Hue",
-		"bg/bg_hue/datatype": "integer",
-		"bg/bg_hue/settable": "true",
-		"bg/bg_hue/format":   "0:359",
+		"bg/hue":          fmt.Sprintf("%v", light.latestState.bg_hue),
+		"bg/hue/name":     "Hue",
+		"bg/hue/datatype": "integer",
+		"bg/hue/settable": "true",
+		"bg/hue/format":   "0:359",
 	}
 
 	// data := map[string]string{
@@ -1049,7 +1049,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_flowing/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/flowing/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1057,7 +1057,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_flow_params/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/flow_params/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1065,7 +1065,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_ct/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/ct/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1073,7 +1073,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_lmode/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/lmode/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1081,7 +1081,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_bright/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/bright/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1089,7 +1089,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_rgb/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/rgb/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
@@ -1097,7 +1097,7 @@ func (as *AppState) subProp(light *Light) {
 			// update state
 		},
 
-		"bg/bg_hue/set": func(client mqtt.Client, message mqtt.Message) {
+		"bg/hue/set": func(client mqtt.Client, message mqtt.Message) {
 			// verify payload
 
 			// change stuff
