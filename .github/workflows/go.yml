@@ -41,8 +41,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ TAG }}
-          release_name: Release ${{ TAG }}
+          tag_name: ${{ env.TAG }}
+          release_name: Release ${{ env.TAG }}
           body: |
              $(cat changelog.md | sed '/^## /,$!d; /^## /{x;p;d}; /^## /p;d' | sed -e 's/^/  - /' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
           draft: false
