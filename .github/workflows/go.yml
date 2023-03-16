@@ -7,6 +7,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        os: [windows, linux, darwin, freebsd]
+        arch: [amd64, arm64, arm, ppc64, riscv64]
+        
     steps:
       - uses: actions/checkout@v2
 
@@ -25,8 +31,15 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-      - name: Cross build
-        run: wget https://github.com/dsorm/gox/releases/download/latest/gox_linux_amd64 && chmod +x gox_linux_amd64 && ./gox_linux_amd64 -os="windows linux darwin freebsd" -arch="amd64 arm64 arm ppc64 riscv64" -ldflags="-w -s" -output="release/{{.Dir}}_{{.OS}}_{{.Arch}}"
+      - name: Cross build (gox)
+        run: |
+          wget https://github.com/dsorm/gox/releases/download/latest/gox_linux_amd64
+          chmod +x gox_linux_amd64
+          os_list=($(/bin/echo "${{ matrix.os }}" | tr ',' ' '))
+          arch_list=($(/bin/echo "${{ matrix.arch }}" | tr ',' ' '))
+          os_opts=$(IFS=, ; echo "${os_list[*]}")
+          arch_opts=$(IFS=, ; echo "${arch_list[*]}")
+          ./gox_linux_amd64 -os="$os_opts" -arch="$arch_opts" -ldflags="-w -s" -output="release/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
       - name: Delete the "latest" Release
         uses: dev-drprasad/delete-tag-and-release@v0.2.0
