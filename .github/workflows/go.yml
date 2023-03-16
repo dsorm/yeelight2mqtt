@@ -4,6 +4,8 @@ on:
   push:
     tags: [ '*' ]
     branches: [ master ]
+env:
+  TAG: yeelight2mqtt-${{ github.ref }}-$(date +'%Y%m%d-%H%M%S')
 
 jobs:
   build:
@@ -39,8 +41,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ TAG }}
+          release_name: Release ${{ TAG }}
           body: |
              $(cat changelog.md | sed '/^## /,$!d; /^## /{x;p;d}; /^## /p;d' | sed -e 's/^/  - /' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
           draft: false
