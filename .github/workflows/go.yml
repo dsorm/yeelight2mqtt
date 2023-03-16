@@ -2,16 +2,12 @@ name: go-latest
 
 on:
   push:
+    tags: [ '*' ]
     branches: [ master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        os: [windows, linux, darwin, freebsd]
-        arch: [amd64, arm64, arm, ppc64, riscv64]
         
     steps:
       - uses: actions/checkout@v2
@@ -35,26 +31,61 @@ jobs:
         run: |
           wget https://github.com/dsorm/gox/releases/download/latest/gox_linux_amd64
           chmod +x gox_linux_amd64
-          os_list=($(/bin/echo "${{ matrix.os }}" | tr ',' ' '))
-          arch_list=($(/bin/echo "${{ matrix.arch }}" | tr ',' ' '))
-          os_opts=$(IFS=, ; echo "${os_list[*]}")
-          arch_opts=$(IFS=, ; echo "${arch_list[*]}")
-          ./gox_linux_amd64 -os="$os_opts" -arch="$arch_opts" -ldflags="-w -s" -output="release/{{.Dir}}_{{.OS}}_{{.Arch}}"
-
-      - name: Delete the "latest" Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
-        if: ${{ steps.vars.outputs.is_release_type_latest == 'true' }}
-        with:
-          tag_name: ${{ steps.vars.outputs.tag_name }}
-          delete_release: true
+          ./gox_linux_amd64 \
+          -os="windows linux darwin freebsd" \
+          -arch="amd64 arm64 arm ppc64 riscv64" \
+          -ldflags="-w -s" -output="release/{{.Dir}}_{{.OS}}_{{.Arch}}" \
+          --parallel=8
+          
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish the Release
-        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.vars.outputs.tag_name }}
-          files: release/*
-          prerelease: true
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+             $(cat changelog.md | sed '/^## /,$!d; /^## /{x;p;d}; /^## /p;d' | sed -e 's/^/  - /' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
+          draft: false
+          prerelease: false
+          
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+          path: ./myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+      - name: Attach Binary to Release
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_path: ./myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+          asset_name: myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+          asset_content_type: application/octet-stream
+          release_id: ${{ steps.create_release.outputs.id }}
+          
+      - name: Create Latest Release
+        id: create_latest_release
+        if: startsWith(github.ref, 'refs/tags/latest')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          release_name: Latest Release
+          body: |
+            $(cat changelog.md | sed '/^## /,$!d; /^## /{x;p;d}; /^## /p;d' | sed -e 's/^/  - /' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')
+          draft: false
+          prerelease: false
+          
+      - name: Attach Binary to Latest Release
+        if: startsWith(github.ref, 'refs/tags/latest')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_path: ./myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+          asset_name: myapp_${{ env.GOOS }}_${{ env.GOARCH }}
+          asset_content_type: application/octet-stream
+          release_id: ${{ steps.create_latest_release.outputs.id }}
