@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-const VERSION = "v1"
+var (
+	Version   string
+	BuildTime string
+	GitCommit string
+)
 
 type MQTTSettings struct {
 	Host      string
@@ -56,7 +60,7 @@ func (as *AppState) publishProp(light *api.Light) {
 		"$nodes":      "main, bg",
 		"$extensions": "",
 
-		"$implementation": "dsorm/yeelight2mqtt@" + VERSION,
+		"$implementation": "dsorm/yeelight2mqtt@" + Version,
 
 		"main/$name":       light.Name + "_main",
 		"main/$type":       "Main Light",
@@ -786,6 +790,16 @@ func main() {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt)
 
+	if Version == "" {
+		Version = "v0.0.0"
+	}
+	if BuildTime == "" {
+		BuildTime = "NAN"
+	}
+	if GitCommit == "" {
+		GitCommit = "NAN"
+	}
+
 	// go func() {
 	// 	select {
 	// 	case _ = <-c:
@@ -799,7 +813,7 @@ func main() {
 	// 	}
 	// }()
 
-	console.Logf("yeelight2mqtt %v starting...\n", VERSION)
+	console.Logf("yeelight2mqtt %v (git commit %v, built %v) starting...\n", Version, GitCommit, BuildTime)
 
 	as := AppState{}
 
