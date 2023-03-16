@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net"
 	"sync"
 )
@@ -83,45 +82,4 @@ func ColorModeFromString(str string) (ColorMode, error) {
 		return ColorModeFlow, nil
 	}
 	return 0, nil
-}
-func (l *Light) String() string {
-	// prints out all the possible properties of Light and it's parameters
-	str := ""
-	str += fmt.Sprintf("Host: %s\n", l.Host)
-	str += fmt.Sprintf("Name: %s\n", l.Name)
-	str += fmt.Sprintf("latestState: %s\n", l.latestState)
-	str += fmt.Sprintf("conn: %s\n", l.conn)
-	str += fmt.Sprintf("connMutex: %s\n", l.connMutex)
-	str += fmt.Sprintf("refreshMsg: %s\n", l.refreshMsg)
-	str += fmt.Sprintf("refreshCallback: %s\n", l.refreshCallback)
-	return str
-}
-
-func (lp *LightProperties) String() string {
-	// prints out all the possible properties of LightProperties and it's parameters
-	str := ""
-	str += fmt.Sprintf("On: %t\n", lp.On)
-	str += fmt.Sprintf("Bright: %d\n", lp.Bright)
-	str += fmt.Sprintf("Ct: %d\n", lp.Ct)
-	str += fmt.Sprintf("RGB: %d\n", lp.RGB)
-	str += fmt.Sprintf("Hue: %d\n", lp.Hue)
-	str += fmt.Sprintf("Sat: %d\n", lp.Sat)
-	str += fmt.Sprintf("Color_Mode: %d\n", lp.Color_Mode)
-	str += fmt.Sprintf("Flowing: %t\n", lp.Flowing)
-	str += fmt.Sprintf("Delayoff: %d\n", lp.Delayoff)
-	str += fmt.Sprintf("Flow_Params: %s\n", lp.Flow_Params)
-	str += fmt.Sprintf("Music_On: %t\n", lp.Music_On)
-	str += fmt.Sprintf("Name: %s\n", lp.Name)
-	str += fmt.Sprintf("Bg_On: %t\n", lp.Bg_On)
-	str += fmt.Sprintf("Bg_Flowing: %t\n", lp.Bg_Flowing)
-	str += fmt.Sprintf("Bg_Flow_Params: %s\n", lp.Bg_Flow_Params)
-	str += fmt.Sprintf("Bg_Ct: %d\n", lp.Bg_Ct)
-	str += fmt.Sprintf("Bg_Color_Mode: %d\n", lp.Bg_Color_Mode)
-	str += fmt.Sprintf("Bg_Bright: %d\n", lp.Bg_Bright)
-	str += fmt.Sprintf("Bg_RGB: %d\n", lp.Bg_RGB)
-	str += fmt.Sprintf("Bg_Hue: %d\n", lp.Bg_Hue)
-	str += fmt.Sprintf("Bg_Sat: %d\n", lp.Bg_Sat)
-	str += fmt.Sprintf("Nl_Br: %d\n", lp.Nl_Br)
-	str += fmt.Sprintf("Moonlight_On: %t\n", lp.Moonlight_On)
-	return str
 }
