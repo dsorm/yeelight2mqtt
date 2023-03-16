@@ -57,6 +57,7 @@ jobs:
           else
             echo "::set-output name=tag::${{ github.ref == 'refs/heads/master' && 'latest' || 'pr-'${{ github.event.pull_request.number }} }}"
           fi
+          
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v2
         with:
