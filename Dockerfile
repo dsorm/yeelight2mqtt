@@ -1,32 +1,21 @@
 # use ubuntu focal as base image
 # builder stage
-FROM ubuntu:focal AS builder
-
-# make sure we're root
+FROM golang:1.20 AS builder
 USER root
 
-# get build dependencies
-# get go toolchain
-WORKDIR /tmp
-RUN apt-get update && apt-get install wget unzip -y && \
-wget https://dl.google.com/go/go1.18.3.linux-amd64.tar.gz -O /tmp/go.linux-amd64.tar.gz && \
-tar -C /usr/local -xzf go.linux-amd64.tar.gz && \
-rm /tmp/go.linux-amd64.tar.gz
-
-WORKDIR /root/go/src/github.com/dsorm/yeelight2mqtt/
-
 # copy source files
+WORKDIR /usr/src/app
 COPY . .
 
 # get dependencies and compile
-RUN /usr/local/go/bin/go install github.com/dsorm/yeelight2mqtt
+RUN /usr/local/go/bin/go build -v -ldflags "-X main.Version=$(git describe --tags) -X main.BuildTime=$(date -u '+%Y-%m-%d_%H:%M:%S') -X main.GitCommit=$(git rev-parse HEAD)" github.com/dsorm/yeelight2mqtt
 
 # final image stage
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
-# copy artefacts and needed files
-RUN mkdir /app && mkdir /app/html
-COPY --from=builder /root/go/bin/yeelight2mqtt /app/yeelight2mqtt
+# copy artifacts and needed files
+RUN mkdir /app
+COPY --from=builder /usr/src/app/yeelight2mqtt /app/yeelight2mqtt
 
 # run
 WORKDIR /app
