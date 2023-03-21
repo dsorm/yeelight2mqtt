@@ -10,4 +10,4 @@ jobs:
       - uses: google-github-actions/release-please-action@v3
         with:
           release-type: go
-          package-name: yeelight2mqtt
+        package-name: yeelight2mqtt
