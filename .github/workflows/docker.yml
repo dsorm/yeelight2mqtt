@@ -31,7 +31,11 @@ jobs:
 
       - name: Set correct environment
         run: |
-          TAG=${{ steps.tag.outputs.tag }}
+          if [[ ! ${{ steps.tag.outputs.tag }} ]]; then
+            TAG="latest";
+          else
+            TAG=${{ steps.tag.outputs.tag }}
+          fi
           echo "TAG=$TAG" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
